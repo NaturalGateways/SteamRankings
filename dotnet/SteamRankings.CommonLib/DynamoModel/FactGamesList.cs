@@ -14,5 +14,18 @@ namespace SteamRankings.DynamoModel
         public int GameID { get; set; }
 
         public string GameName { get; set; }
+
+        public int? PickedIndex { get; set; }
+
+        public FactGamesListItemRanked Ranked { get; set; }
+    }
+
+    public class FactGamesListItemRanked
+    {
+        public int StreamIndex { get; set; }
+
+        public DateTime RankDateTimeUtc { get; set; }
+
+        public int Rating { get; set; }
     }
 }

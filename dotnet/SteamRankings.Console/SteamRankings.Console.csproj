@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\SteamRankings.ApiServices\SteamRankings.ApiServices.csproj" />
     <ProjectReference Include="..\SteamRankings.CommonLib\SteamRankings.CommonLib.csproj" />
     <ProjectReference Include="..\SteamRankings.UploadLib\SteamRankings.UploadLib.csproj" />
   </ItemGroup>
