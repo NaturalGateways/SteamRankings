@@ -1,5 +1,4 @@
 ﻿using Amazon.S3.Model.Internal.MarshallTransformations;
-using SteamRankings.DynamoModel;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -50,7 +49,7 @@ namespace SteamRankings.ApiServices
             }
 
             // Wipe sequence
-            foreach (FactGamesListItem listItem in gamesList.Items)
+            foreach (DynamoModel.FactGamesListItem listItem in gamesList.Items)
             {
                 listItem.PickedIndex = null;
             }
@@ -75,7 +74,7 @@ namespace SteamRankings.ApiServices
 
         private static async Task<object> HandleFetchNextItemRequestAsync(Natural.Aws.DynamoDB.IDynamoTable dataTable)
         {
-            const int SPOOL_SIZE = 100;
+            const int SPOOL_SIZE = 5;
 
             // Get games list form database
             DynamoModel.FactGamesList gamesList = await GameListReader.ReadGamesListAsync(dataTable);
@@ -91,7 +90,7 @@ namespace SteamRankings.ApiServices
             // Create the spool
             List<DynamoModel.FactGamesListItem> availableItemList = gamesList.Items.Where(x => x.PickedIndex.HasValue == false || pickedIndex < x.PickedIndex.Value).ToList();
             List<ApiDtos.FetchNextItemResponseDtoItem> spoolItemList = new List<ApiDtos.FetchNextItemResponseDtoItem>();
-            for (int spoolIndex = 0; spoolIndex != SPOOL_SIZE; ++spoolIndex)
+            for (int spoolIndex = 0; spoolIndex != SPOOL_SIZE && availableItemList.Any(); ++spoolIndex)
             {
                 int pickedSpoolIndex = Random.Shared.Next(availableItemList.Count);
                 spoolItemList.Add(new ApiDtos.FetchNextItemResponseDtoItem(availableItemList[pickedSpoolIndex]));
@@ -121,14 +120,14 @@ namespace SteamRankings.ApiServices
             DynamoModel.FactGamesList gamesList = await GameListReader.ReadGamesListAsync(dataTable);
 
             // Get game
-            FactGamesListItem rankedGame = gamesList.Items.FirstOrDefault(x => x.GameID == payloadDto.GameId);
+            DynamoModel.FactGamesListItem rankedGame = gamesList.Items.FirstOrDefault(x => x.GameID == payloadDto.GameId);
             if (rankedGame == null)
                 throw new Exception($"Cannot rank game with ID '{payloadDto.GameId}' since it doesn't exist.");
             if (rankedGame.Ranked != null)
                 throw new Exception($"Cannot rank game with ID '{payloadDto.GameId}' since it is already ranked.");
 
             // Set the rank
-            rankedGame.Ranked = new FactGamesListItemRanked
+            rankedGame.Ranked = new DynamoModel.FactGamesListItemRanked
             {
                 StreamIndex = payloadDto.StreamIndex,
                 RankDateTimeUtc = DateTime.UtcNow,

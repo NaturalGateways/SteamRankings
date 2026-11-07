@@ -1,4 +1,6 @@
-﻿namespace SteamRankings.Console
+using Microsoft.Extensions.Configuration;
+
+namespace SteamRankings.Console
 {
     public class Program
     {
