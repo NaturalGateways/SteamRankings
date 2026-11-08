@@ -21,6 +21,8 @@ namespace SteamRankings.ApiServices
                     return await HandleFetchNextItemRequestAsync(dataTable);
                 case ApiDtos.ApiRequestType.RankItem:
                     return await HandleRankItemRequestAsync(dataTable, request);
+                case ApiDtos.ApiRequestType.FetchRankedList:
+                    return await HandleFetchRankedListAsync(dataTable, request);
                 default:
                     throw new Exception("Unredognised request type.");
             }
@@ -31,7 +33,7 @@ namespace SteamRankings.ApiServices
             const int LINEUP_SIZE = 5;
 
             // Get games list form database
-            DynamoModel.FactGamesList gamesList = await GameListReader.ReadGamesListAsync(dataTable);
+            DynamoModel.FactGamesList gamesList = await GameListDataAccess.ReadGamesListAsync(dataTable);
 
             // Get picked items
             List<DynamoModel.FactGamesListItem> pickedItemList = gamesList.Items.Where(x => x.PickedIndex.HasValue && x.Ranked == null).OrderBy(x => x.PickedIndex.Value).ToList();
@@ -60,13 +62,7 @@ namespace SteamRankings.ApiServices
             }
 
             // Store new list
-            await dataTable.PutItemAsync("Fact", "GameList", new Natural.Aws.DynamoDB.ItemUpdate
-            {
-                ObjectAttributes = new Dictionary<string, object>
-                {
-                    { "DataJson", gamesList }
-                }
-            });
+            await GameListDataAccess.WriteGameListAsync(dataTable, gamesList);
 
             // Return the new picked list
             return pickedItemList;
@@ -74,10 +70,10 @@ namespace SteamRankings.ApiServices
 
         private static async Task<object> HandleFetchNextItemRequestAsync(Natural.Aws.DynamoDB.IDynamoTable dataTable)
         {
-            const int SPOOL_SIZE = 5;
+            const int SPOOL_SIZE = 100;
 
             // Get games list form database
-            DynamoModel.FactGamesList gamesList = await GameListReader.ReadGamesListAsync(dataTable);
+            DynamoModel.FactGamesList gamesList = await GameListDataAccess.ReadGamesListAsync(dataTable);
 
             // Get the picked item
             DynamoModel.FactGamesListItem pickedListItem = gamesList.Items.Where(x => x.PickedIndex.HasValue && x.Ranked == null).OrderBy(x => x.PickedIndex.Value).FirstOrDefault();
@@ -117,7 +113,7 @@ namespace SteamRankings.ApiServices
                 throw new Exception("A ranking must be between 0 and 5 inclusively.");
 
             // Get games list form database
-            DynamoModel.FactGamesList gamesList = await GameListReader.ReadGamesListAsync(dataTable);
+            DynamoModel.FactGamesList gamesList = await GameListDataAccess.ReadGamesListAsync(dataTable);
 
             // Get game
             DynamoModel.FactGamesListItem rankedGame = gamesList.Items.FirstOrDefault(x => x.GameID == payloadDto.GameId);
@@ -135,16 +131,15 @@ namespace SteamRankings.ApiServices
             };
 
             // Store new list
-            await dataTable.PutItemAsync("Fact", "GameList", new Natural.Aws.DynamoDB.ItemUpdate
-            {
-                ObjectAttributes = new Dictionary<string, object>
-                {
-                    { "DataJson", gamesList }
-                }
-            });
+            await GameListDataAccess.WriteGameListAsync(dataTable, gamesList);
 
             // Return
             return rankedGame;
+        }
+
+        private static async Task<object> HandleFetchRankedListAsync(Natural.Aws.DynamoDB.IDynamoTable dataTable, ApiDtos.ApiRequestDto request)
+        {
+            return await GameListDataAccess.ReadRankedListAsync(dataTable);
         }
     }
 }

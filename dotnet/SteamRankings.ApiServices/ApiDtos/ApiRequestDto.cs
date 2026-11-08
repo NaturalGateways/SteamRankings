@@ -8,7 +8,8 @@ namespace SteamRankings.ApiServices.ApiDtos
     {
         PickLineupItems,
         FetchNextItem,
-        RankItem
+        RankItem,
+        FetchRankedList
     }
 
     public class ApiRequestDto

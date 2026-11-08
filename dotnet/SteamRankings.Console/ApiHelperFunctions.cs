@@ -39,5 +39,14 @@ namespace SteamRankings.Console
             });
             return (DynamoModel.FactGamesListItem)responseObject;
         }
+
+        public static async Task<DynamoModel.DimRankedList> FetchRankedListAsync(Natural.Aws.IAwsService awsService)
+        {
+            object responseObject = await ApiServices.ApiService.HandleRequestAsync(awsService, new ApiServices.ApiDtos.ApiRequestDto
+            {
+                RequestType = ApiServices.ApiDtos.ApiRequestType.FetchRankedList
+            });
+            return (DynamoModel.DimRankedList)responseObject;
+        }
     }
 }
