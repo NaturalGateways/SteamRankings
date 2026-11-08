@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SteamRankings.ApiServices.ApiDtos
+namespace SteamRankings.ApiDtos
 {
     public class FetchNextItemResponseDto
     {
